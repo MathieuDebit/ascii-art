@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Animation 03</title>
+    <style>
+        html,
+        body{
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            border: 1px solid tomato;
+            width: 100%;
+            height: 100%;
+        }
+
+        #output {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #333333;
+            color: #EEEEEE;
+            font-size: 13.4px;
+            line-height: 8px;
+            letter-spacing: 0px;
+            white-space: nowrap;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <canvas id=c></canvas>
+
+    <div id="output"></div>
+
+    <script>
+        /*
+         * this code belongs to "towc"
+         * from https://www.codepen.io/MateiGCopot
+         *
+         * and was made for #rainbowLinesWeekend
+         * on 23/05/15
+         *
+         */
+
+        var w = c.width = window.innerWidth / 8,
+            h = c.height = window.innerHeight / 8,
+            ctx = c.getContext( '2d' ),
+
+            BoxSide = [ 80, 200 ], // [ max, min ]
+            BoxSpeed = [ 2, 4 ],
+            BoxLineCount = [ 2, 5 ],
+            BoxLineSplits = [ 5, 10 ],
+            BoxAmount = 20,
+            BoxSpawnProb = .05,
+            BoxJitterMultiplier = .02,
+            BoxHueVariation = 30,
+            PointSpeedMultiplier = .01,
+
+            boxes = [],
+            tick = ( Math.random() * 360 ) |0;
+
+        function Box() {
+
+            this.reset();
+        }
+        Box.prototype.reset = function() {
+
+            this.side = randomArr( BoxSide ) |0;
+            this.lineCount = randomArr( BoxLineCount ) |0;
+            this.lineSplits = randomArr( BoxLineSplits ) |0;
+            this.hue = tick;
+            this.jitter = BoxJitterMultiplier * this.side;
+
+            var speed = randomArr( BoxSpeed ) |0;
+
+            // decide on which side it spawns
+
+            var side = Math.random() < .5,
+                rad;
+
+            if( Math.random() < .5 ) {
+
+                this.x = Math.random() * w;
+                this.y = side ? -this.side : h + this.side;
+
+                rad = side ? Math.random() * Math.PI : - Math.random() * Math.PI;
+
+            } else {
+
+                this.x = Math.random() < .5 ? -this.side : w + this.side;
+                this.y = Math.random() * h;
+
+                rad = side ? Math.random() * Math.PI + Math.PI : -Math.random() * Math.PI + Math.PI
+            }
+
+            this.vx = Math.cos( rad ) * speed;
+            this.vy = Math.sin( rad ) * speed;
+
+            // handle the lines
+            this.lines = [];
+
+            for( var i = 0; i < this.lineCount; ++i ) {
+
+                var line = {
+
+                    p1: new Point( this.side ),
+                    p2: new Point( this.side )
+                };
+
+                line.p1 = new Point( this.side );
+                line.p2 = new Point( this.side );
+
+                this.lines.push( line );
+            }
+        }
+        Box.prototype.step = function() {
+
+            this.x += this.vx;
+            this.y += this.vy;
+
+            ctx.strokeStyle = 'hsl( hue, 80%, 50% )'.replace(
+                'hue', this.hue + Math.random() * BoxHueVariation );
+
+            ctx.save();
+            ctx.translate( this.x, this.y );
+
+            for( var i = 0; i < this.lineCount; ++i ) {
+
+                var l1 = this.lines[ i ];
+
+                l1.p1.step();
+                l1.p2.step();
+
+                var dx1 = ( l1.p1.x - l1.p2.x ) / this.lineSplits,
+                    dy1 = ( l1.p1.y - l1.p2.y ) / this.lineSplits;
+
+                for( var j = i + 1; j < this.lineCount; ++j ) {
+
+                    var l2 = this.lines[ j ],
+                        dx2 = ( l2.p1.x - l2.p2.x ) / this.lineSplits,
+                        dy2 = ( l2.p1.y - l2.p2.y ) / this.lineSplits;
+
+                    for( var k = 0; k < this.lineSplits; ++k ) {
+
+                        var rand1 = random( this.jitter, -this.jitter ),
+                            rand2 = random( this.jitter, -this.jitter );
+
+                        ctx.beginPath();
+                        ctx.moveTo(
+                            l1.p1.x + rand1 + k * dx1,
+                            l1.p1.y + rand1 + k * dy1 );
+                        ctx.lineTo(
+                            l2.p1.x + rand2 + k * dx2,
+                            l2.p1.y + rand2 + k * dy2 );
+
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            ctx.restore();
+
+            if( this.x + this.side < 0 || this.x > w ||
+                this.y + this.side < 0 || this.y > h )
+                this.reset();
+        }
+
+        function Point( side ) {
+
+            this.side = side;
+
+            this.x = Math.random() * side;
+            this.y = Math.random() * side;
+
+            var rad = Math.random() * Math.PI * 2,
+                speed = side * PointSpeedMultiplier;
+
+            this.vx = Math.cos( rad ) * speed;
+            this.vy = Math.sin( rad ) * speed;
+        }
+        Point.prototype.step = function() {
+
+            this.x += this.vx;
+            this.y += this.vy;
+
+            if( this.x < 0 || this.x > this.side ) this.vx *= -1;
+            if( this.y < 0 || this.y > this.side ) this.vy *= -1;
+        }
+
+        function anim() {
+
+            window.requestAnimationFrame( anim );
+
+            this.tick += .2;
+            this.tick %= 360;
+
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'rgba(0,0,0,.1)';
+            ctx.fillRect( 0, 0, w, h );
+            ctx.globalCompositeOperation = 'lighter'
+
+            if( boxes.length < BoxAmount && Math.random() < BoxSpawnProb )
+                boxes.push( new Box );
+
+            boxes.map( function( box ) { box.step(); } );
+
+            const NEWLINE = "<br/>";
+            const map = " @#%*+=-:. ";
+            let data = ctx.getImageData(0, 0, w, h).data;
+            let asciiPixels = "";
+
+            for (let i = 0, l = data.length; i < l; i += 4) {
+                asciiPixels += map[
+                    Math.round(
+                        (map.length - 1) * (0.34 * data[i] + 0.5 * data[i + 1] + 0.16 * data[i + 2]) / 255
+                    )
+                    ];
+
+                if (Math.ceil((i + 1) / 4) % c.width === 0) {
+                    asciiPixels += NEWLINE;
+                }
+            }
+
+            document.getElementById('output').innerHTML = asciiPixels.replace(/ /g, "&nbsp;");
+        }
+
+        function randomArr( arr ) {
+
+            return random( arr[ 0 ], arr[ 1 ] );
+        }
+        function random( min, max ) {
+
+            return Math.random() * ( max - min ) + min;
+        }
+
+        ctx.lineWidth = .1;
+
+        ctx.fillStyle = '#222';
+        ctx.fillRect( 0, 0, w, h );
+
+        anim();
+    </script>
+</body>
+</html>
