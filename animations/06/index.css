@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+
+html,
+body {
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Roboto Mono', monospace;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 1px solid tomato;
+}
+
+#ascii {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: black;
+    color: #EEEEEE;
+    white-space: nowrap;
+    font-size: 18.4px;
+    line-height: 21px;
+    letter-spacing: 12px;
+    z-index: 9;
+}
