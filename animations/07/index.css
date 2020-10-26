@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+
+@font-face {
+    font-family: 'Terminal Vector';
+    src: url('./TerminalVector.ttf');
+}
+
+html,
+body {
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Terminal Vector', monospace;
+    background-color: black;
+    color: #EEEEEE;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: 1px solid tomato;
+    z-index: -1;
+}
+
+#ascii {
+    position: absolute;
+    top: 0;
+    left: 0;
+    white-space: nowrap;
+    font-size: 23px;
+    letter-spacing: 10px;
+    line-height: 25px;
+}
+
+#fond {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 325px;
+    height: 27px;
+    background-color: blue;
+}
